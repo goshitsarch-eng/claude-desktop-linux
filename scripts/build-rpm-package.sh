@@ -19,16 +19,17 @@ echo "Package Name: $PACKAGE_NAME"
 
 # Setup RPM build directories
 RPM_BUILD_ROOT="$WORK_DIR/rpmbuild"
-mkdir -p "$RPM_BUILD_ROOT"/{BUILD,RPMS,SOURCES,SPECS,SRPMS,BUILDROOT}
+mkdir -p "$RPM_BUILD_ROOT"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 
-INSTALL_ROOT="$RPM_BUILD_ROOT/BUILDROOT/${PACKAGE_NAME}-${VERSION}-1.${ARCHITECTURE}"
-INSTALL_DIR="$INSTALL_ROOT/usr"
+# Stage files in SOURCES directory - rpmbuild will copy them to buildroot during %install
+STAGING_DIR="$RPM_BUILD_ROOT/SOURCES/staged"
+INSTALL_DIR="$STAGING_DIR/usr"
 
-# Clean previous package structure if it exists
-rm -rf "$INSTALL_ROOT"
+# Clean previous staging directory if it exists
+rm -rf "$STAGING_DIR"
 
-# Create RPM package structure
-echo "Creating package structure in $INSTALL_ROOT..."
+# Create staging directory structure
+echo "Creating staging structure in $STAGING_DIR..."
 mkdir -p "$INSTALL_DIR/lib/$PACKAGE_NAME"
 mkdir -p "$INSTALL_DIR/share/applications"
 mkdir -p "$INSTALL_DIR/share/icons"
@@ -211,8 +212,9 @@ This package provides the desktop interface for Claude.
 Supported on Fedora, RHEL, CentOS, and other RPM-based Linux distributions.
 
 %install
-# Copy pre-built files from BUILDROOT
-cp -a %{buildroot}/* %{buildroot}/ 2>/dev/null || true
+# Copy pre-staged files into buildroot
+mkdir -p %{buildroot}
+cp -a $STAGING_DIR/* %{buildroot}/
 
 %post
 # Update desktop database for MIME types
@@ -243,9 +245,8 @@ echo "RPM spec file created at $SPEC_FILE"
 # --- Build RPM Package ---
 echo "Building RPM package..."
 
-# Build the RPM
+# Build the RPM (let rpmbuild manage its own buildroot)
 rpmbuild --define "_topdir $RPM_BUILD_ROOT" \
-         --define "buildroot $INSTALL_ROOT" \
          -bb "$SPEC_FILE"
 
 # Find and move the built RPM
