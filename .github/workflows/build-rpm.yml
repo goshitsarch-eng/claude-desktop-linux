@@ -1,0 +1,17 @@
+name: Build RPM
+run-name: |
+  Build RPM: ${{
+    format('Manual build triggered by @{0}', github.actor)
+  }}
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-rpm-amd64:
+    name: Build RPM (x86_64)
+    uses: ./.github/workflows/build-rpm-amd64.yml
+
+  build-rpm-arm64:
+    name: Build RPM (aarch64)
+    uses: ./.github/workflows/build-rpm-arm64.yml

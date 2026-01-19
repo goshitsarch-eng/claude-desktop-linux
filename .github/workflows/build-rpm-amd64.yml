@@ -1,0 +1,29 @@
+name: Build RPM AMD64 (Reusable)
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: fedora:latest
+
+    steps:
+      - name: Install git (required for checkout)
+        run: dnf install -y git
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Make build script executable
+        run: chmod +x ./scripts/build-rpm.sh
+
+      - name: Run RPM build script
+        run: ./scripts/build-rpm.sh
+
+      - name: Upload x86_64 RPM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-x86_64-rpm
+          path: claude-desktop-*.x86_64.rpm
+          if-no-files-found: error

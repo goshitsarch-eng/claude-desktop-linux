@@ -1,0 +1,29 @@
+name: Build RPM ARM64 (Reusable)
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04-arm
+    container: fedora:latest
+
+    steps:
+      - name: Install git (required for checkout)
+        run: dnf install -y git
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Make build script executable
+        run: chmod +x ./scripts/build-rpm.sh
+
+      - name: Run RPM build script
+        run: ./scripts/build-rpm.sh
+
+      - name: Upload aarch64 RPM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-aarch64-rpm
+          path: claude-desktop-*.aarch64.rpm
+          if-no-files-found: error
